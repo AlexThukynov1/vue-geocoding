@@ -1,11 +1,20 @@
 <template>
     <div class="home-page h-screen relative">
-       <div id="map" class="h-full z-15"></div>
+       <div id="map" class="h-full z-[1]"></div>
     </div>
 </template>
 
 <script>
-    export default {
-        name: "HomeView",
+import leaflet from 'leaflet'
+import { onMounted } from 'vue';
+
+export default {
+    name: "HomeView",
+    setup() {
+        let map;
+        onMounted(() => {
+            map = leaflet.map = L.map('map').setView([50.45000, 30.52333], 10);
+        })
     }
+}
 </script>
