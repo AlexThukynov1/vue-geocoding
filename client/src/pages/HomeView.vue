@@ -6,7 +6,7 @@
 
 <script>
 import leaflet from 'leaflet'
-import { onMounted } from 'vue';
+import { onMounted, ref } from 'vue';
 
 export default {
     name: "HomeView",
@@ -14,7 +14,21 @@ export default {
         let map;
         onMounted(() => {
             map = leaflet.map = L.map('map').setView([50.45000, 30.52333], 10);
+
+            leaflet.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+            accessToken: import.meta.env.CLIENT_APP_API_KEY,
+}).addTo(map);
         })
+        
+        const coords = ref(null);
+        const fetchCoords = ref(null);
+        const marker = ref(null);
+        const getGeolocation = () => {
+            
+        }
+    
     }
 }
 </script>
