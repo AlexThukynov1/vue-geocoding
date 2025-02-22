@@ -5,15 +5,16 @@
 </template>
 
 <script>
-import leaflet, { PolyUtil } from 'leaflet'
+import leaflet from 'leaflet'
 import { onMounted, ref } from 'vue';
+import customMarkerRed from '../assets/map-marker-red.svg';
 
 export default {
     name: "HomeView",
     setup() {
         let map;
         onMounted(() => {
-            map = leaflet.map = L.map('map').setView([50.45000, 30.52333], 10);
+            map = leaflet.map('map').setView([50.45000, 30.52333], 10);
 
             leaflet.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', 
             {
@@ -29,41 +30,61 @@ export default {
         const coords = ref(null);
         const fetchCoords = ref(null);
         const marker = ref(null);
+        const geoError = ref(null);
+        const geoErrorMessage = ref(null)
 
         const getGeolocation = () => {
-            fetchCoords.value = true;
-            navigator.geolocation.getCurrentPosition(setCoords, getLocError)
+            if(sessionStorage.getItem('coords')) {
+                coords.value = JSON.parse(sessionStorage.getItem("coords"));
+                plotGeolocation(coords.value);
+            } else {
+                fetchCoords.value = true;
+                navigator.geolocation.getCurrentPosition(setCoords, getLocError)
+            }
+
+           
         }
 
         const setCoords = (pos) => {
+            console.log(pos)
             fetchCoords.value = null;
 
             const setSessionCoords = {
                 lat: pos.coords.latitude,
-                lng: pos.coors.longitude
+                lng: pos.coords.longitude
             };
 
             sessionStorage.setItem("coords", JSON.stringify(setSessionCoords));
 
             coords.value = setSessionCoords;
 
-            plotGeolocation(coords,value);
+            plotGeolocation(coords.value);
         };
 
         const getLocError = (e) => {
-            console.log(e)
+            fetchCoords.value = null;
+            geoError.value = true;
+            geoErrorMessage.value = e.message;
         };
 
         const plotGeolocation = (coords) => {
             const customMarket = leaflet.icon({
-                iconUrl: require('../assets/map-marker-red.svg'),
+                iconUrl: customMarkerRed,
                 iconSize: [35, 35]
             })
 
-            geoMarker.value = leaflet.marker([coords.lat, coords.lng], {icon: customMarket})
-            .addTo(map)
+            marker.value = leaflet.marker([coords.lat, coords.lng], {icon: customMarket})
+            .addTo(map);
+
+            map.setView([coords.lat, coords.lng], 12);
         }
-        return {coords, geoMarker}
+
+        const closeGeoError = () => {
+            geoError.value = null;
+            geoErrorMessage.value = null;
+        }
+
+        return {coords, marker, closeGeoError}
     }
 }
 </script>
