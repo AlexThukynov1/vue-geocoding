@@ -1,5 +1,10 @@
 <template>
     <div class="home-page h-screen relative">
+        <error-modal-geolocation
+            v-if="geoError"
+            :geoErrorMessage="geoErrorMessage"
+            @closeModal="handleGeoErrorStatus"
+        />
        <div id="map" class="h-full z-[1]"></div>
     </div>
 </template>
@@ -8,8 +13,10 @@
 import leaflet from 'leaflet'
 import { onMounted, ref } from 'vue';
 import customMarkerRed from '../assets/map-marker-red.svg';
+import ErrorModalGeolocation from '../components/ErrorModalGeolocation.vue';
 
 export default {
+  components: { ErrorModalGeolocation },
     name: "HomeView",
     setup() {
         let map;
@@ -30,8 +37,8 @@ export default {
         const coords = ref(null);
         const fetchCoords = ref(null);
         const marker = ref(null);
-        const geoError = ref(null);
-        const geoErrorMessage = ref(null)
+        const geoError = ref(true);
+        const geoErrorMessage = ref('')
 
         const getGeolocation = () => {
             if(sessionStorage.getItem('coords')) {
@@ -80,11 +87,15 @@ export default {
         }
 
         const closeGeoError = () => {
-            geoError.value = null;
+            geoError.value = false;
             geoErrorMessage.value = null;
         }
 
-        return {coords, marker, closeGeoError}
+        const handleGeoErrorStatus = (status) => {
+            geoError.value = status
+        }
+
+        return {coords, marker, closeGeoError, geoError,geoErrorMessage, handleGeoErrorStatus}
     }
 }
 </script>
