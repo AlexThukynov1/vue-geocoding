@@ -1,9 +1,14 @@
 <template>
     <div class="home-page h-screen relative">
-        <error-modal-geolocation
+        <ErrorModalGeolocation
             v-if="geoError"
             :geoErrorMessage="geoErrorMessage"
             @closeModal="handleGeoErrorStatus"
+        />
+        <MapFeatures
+            :coords="coords"
+            :fetchCoords="fetchCoords"
+            @getGeolocation="getGeolocation"
         />
        <div id="map" class="h-full z-[1]"></div>
     </div>
@@ -14,9 +19,10 @@ import leaflet from 'leaflet'
 import { onMounted, ref } from 'vue';
 import customMarkerRed from '../assets/map-marker-red.svg';
 import ErrorModalGeolocation from '../components/ErrorModalGeolocation.vue';
+import MapFeatures from '../components/MapFeatures.vue';
 
 export default {
-  components: { ErrorModalGeolocation },
+  components: { ErrorModalGeolocation,MapFeatures },
     name: "HomeView",
     setup() {
         let map;
@@ -37,10 +43,17 @@ export default {
         const coords = ref(null);
         const fetchCoords = ref(null);
         const marker = ref(null);
-        const geoError = ref(true);
+        const geoError = ref(false);
         const geoErrorMessage = ref('')
 
         const getGeolocation = () => {
+            if (coords.value) {
+                coords.value = null;
+                sessionStorage.removeItem("coords")
+                map.removeLayer(marker.value);
+                return;
+            }
+
             if(sessionStorage.getItem('coords')) {
                 coords.value = JSON.parse(sessionStorage.getItem("coords"));
                 plotGeolocation(coords.value);
@@ -53,7 +66,6 @@ export default {
         }
 
         const setCoords = (pos) => {
-            console.log(pos)
             fetchCoords.value = null;
 
             const setSessionCoords = {
@@ -83,7 +95,8 @@ export default {
             marker.value = leaflet.marker([coords.lat, coords.lng], {icon: customMarket})
             .addTo(map);
 
-            map.setView([coords.lat, coords.lng], 12);
+            map.setView([coords.lat, coords.lng], 15);
+            
         }
 
         const closeGeoError = () => {
@@ -95,7 +108,7 @@ export default {
             geoError.value = status
         }
 
-        return {coords, marker, closeGeoError, geoError,geoErrorMessage, handleGeoErrorStatus}
+        return {coords, marker, fetchCoords, closeGeoError, geoError,geoErrorMessage, getGeolocation, handleGeoErrorStatus}
     }
 }
 </script>
